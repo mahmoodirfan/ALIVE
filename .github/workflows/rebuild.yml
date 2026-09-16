@@ -26,17 +26,26 @@ jobs:
             .rebuild/part01 \
             .rebuild/part02_03 \
             .rebuild/part04_07 \
+            .rebuild/fix04_07 \
             .rebuild/part08_11 \
+            .rebuild/fix08_11 \
             .rebuild/part12_15 \
+            .rebuild/fix12_15 \
             .rebuild/part16_19 \
+            .rebuild/fix16_19 \
             .rebuild/part20_21 \
             | tr -d '\r\n\t ' \
             | base64 --decode --ignore-garbage > /tmp/alive.tar.xz
+
+          echo 'd7cf3edb4697a23bfa4944541d83cecd837e6c93a6a790fafefc6931752cd07b  /tmp/alive.tar.xz' | sha256sum -c -
+          xz -t /tmp/alive.tar.xz
+
           mkdir -p /tmp/alive-src
           tar -xJf /tmp/alive.tar.xz -C /tmp/alive-src
           test -f /tmp/alive-src/ALIVE/package.json
           test -f /tmp/alive-src/ALIVE/apps/demo-store/package.json
           test -f /tmp/alive-src/ALIVE/packages/core/package.json
+
           find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
           cp -a /tmp/alive-src/ALIVE/. .
 
