@@ -1,0 +1,96 @@
+ALIVE Phase 5 — connected verification
+Date: 2026-09-17
+Scope: import supplied clean Phase 5 showcase; no new product phase.
+
+Environment and installation
+----------------------------
+Node v22.23.2; pnpm 9.15.9; real registry packages (no declaration stubs).
+Initial pnpm install --no-frozen-lockfile refreshed pnpm-lock.yaml.
+Subsequent pnpm install --frozen-lockfile: PASS.
+Lockfile contains all five workspace importers, including apps/demo-store.
+CI now uses --frozen-lockfile and includes pnpm demo:build.
+All eight pinned browser dependency versions from the source ZIP were available
+and retained unchanged. No dependency version changes were needed.
+MSW worker generation is noninteractive: msw init public --no-save.
+
+Required commands
+-----------------
+pnpm lint: PASS.
+pnpm typecheck: PASS.
+pnpm test: PASS — 258 tests across 22 test files:
+  core: 236; integration: 12; MSW adapter: 5; demo: 5.
+pnpm build: PASS.
+pnpm demo:build: PASS.
+pnpm demo --host 127.0.0.1: Vite started successfully.
+
+Connected-environment repairs
+-----------------------------
+- Cache PlaybackController snapshots for useSyncExternalStore. Repeated reads
+  and clock-only ticks preserve snapshot identity; playing/speed changes replace
+  it. Regression checks cover notifications, pause and horizon completion.
+- Explicitly build internal package exports before typecheck, tests and demo
+  commands, including on a clean checkout. Do not rely on implicit pre-script hooks.
+- Match MSW's real optional path-parameter types and omit undefined values when
+  normalizing route parameters. Added a regression test.
+- Add type-only Objectish assertions to four Immer applyPatches inputs. Runtime
+  calls, public world-state generic and simulation semantics are unchanged.
+- Remove the interactive MSW postinstall prompt.
+No existing tests were weakened or removed.
+
+Automated functional acceptance through real HTTP interception
+-------------------------------------------------------------
+apps/demo-store/test/http.test.ts uses real MSW Node handlers, fetch and an active
+TanStack Query observer. Only origin qualification is Node-specific; routes and
+commands are the actual showcase contract. The test verifies:
+PASS: initial lamp stock 5; first ordinary commit refreshes HTTP query to stock 4.
+PASS: natural baseline stockout at 11:12; baseline stock 0 and lost orders 2.
+PASS: scrub at 10:30 refreshes HTTP-driven historical stock to 2.
+PASS: POST restock while scrubbed returns 409 ALIVE_HISTORICAL_VIEW.
+PASS: rejected mutation preserves history and baseline live head at 14:00.
+PASS: fork at 10:30 followed by POST /api/products/arc-lamp/restock (+8).
+PASS: POST response and subscribed query show stock 10 before further demand.
+PASS: fork at 14:00 has lamp stock 6 and lost orders 0.
+PASS: real comparison reports no fork stockout, causalLanguagePermitted=true,
+      and causalEventKey=arcStockout.
+PASS: switching back retains baseline stock 0 and the original event log.
+No refetchInterval exists in the application source.
+These checks do not replace a browser service-worker acceptance test.
+
+Browser / visual acceptance — BLOCKED, NOT CLAIMED
+------------------------------------------------
+The connected cloud browser cannot access the local loopback preview.
+The supported managed preview failed before startup because its own runtime
+could not resolve live-server. Status confirmed the preview was stopped.
+No alternate browser-control mechanism or infrastructure workaround was used.
+A private Site registration was created while investigating preview availability;
+no version was deployed and no public showcase URL is claimed.
+No browser screenshot or recording is claimed or fabricated.
+Still required: actual browser baseline/rewind/fork/comparison walk-through,
+visual review, and browser service-worker verification before hosted publication.
+
+Other remaining observations
+----------------------------
+Vite reports a nonfatal large-chunk warning: approximately 787 kB minified JS
+(267 kB gzip). This is the current single-showcase bundle; no broad refactor was
+introduced to silence the warning.
+The package manager reports the pinned ESLint 9 release as unsupported; it was
+retained to avoid an unrelated major toolchain migration. Lint passes.
+
+Repository cleanliness
+----------------------
+The imported tree removes .bootstrap, .payload, .rebuild, .exact, .source and all
+transfer-only workflows. Only the product CI workflow remains.
+Generated dist, node_modules and mockServiceWorker.js remain ignored.
+Private preview registration, validation logs and toolchain files are not part
+of the published GitHub product tree.
+
+Previous offline verification
+-----------------------------
+The supplied 2026-09-16 report used temporary external declaration stubs and
+headless scenario smoke checks. The real dependency-backed command results above
+supersede those offline claims. Browser acceptance remains explicitly pending.
+
+Release status
+--------------
+Connected automated verification is complete. Phase 5 is NOT declared fully
+launch-ready until the outstanding browser/visual acceptance gate is passed.
